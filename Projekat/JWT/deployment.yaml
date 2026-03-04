@@ -1,0 +1,32 @@
+version: "3"
+
+volumes:
+  database_data:
+
+services:
+  database:
+    image: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./init:/docker-entrypoint-initdb.d
+      - database_data:/var/lib/mysql
+
+  adminer:
+    image: adminer
+    ports:
+      - "8080:8080"
+
+  users:
+    image: users:v1
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=database:3306
+      - DATABASE_USERNAME=root
+      - DATABASE_PASSWORD=root
+      - DATABASE_NAME=users
+      - HOST=0.0.0.0
+    

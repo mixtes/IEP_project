@@ -1,0 +1,11 @@
+FROM python:3
+
+COPY ./configuration.py /configuration.py
+COPY ./decorators.py /decorators.py
+COPY ./main.py /main.py
+COPY ./models.py /models.py
+COPY ./requirements.txt /requirements.txt
+
+RUN pip install -r /requirements.txt
+
+CMD [ "python", "-u", "main.py" ]

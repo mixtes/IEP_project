@@ -1,0 +1,93 @@
+version: "3"
+
+volumes:
+  db_auth_data:
+  db_store_data:
+
+services:
+  ganache:
+    image: trufflesuite/ganache-cli
+    ports:
+      - "8545:8545"
+    command: >
+      --accounts 10
+      --deterministic
+      --mnemonic "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat"
+
+  db_auth:
+    image: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./init_auth_db:/docker-entrypoint-initdb.d
+      - db_auth_data:/var/lib/mysql
+
+  db_store:
+    image: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - "3308:3306"
+    volumes:
+      - ./init_store_db:/docker-entrypoint-initdb.d
+      - db_store_data:/var/lib/mysql
+
+  adminer:
+    image: adminer
+    ports:
+      - "8080:8080"
+
+  auth_app:
+    image: auth_app:v1
+    ports:
+      - "5000:5000"
+    environment:
+      - AUTH_DATABASE_URL=db_auth:3306
+      - AUTH_DATABASE_USERNAME=root
+      - AUTH_DATABASE_PASSWORD=root
+      - AUTH_DATABASE_NAME=online_store_auth
+      - HOST=0.0.0.0
+
+  owner_app:
+    image: owner_app:v1
+    ports:
+      - "5001:5000"
+    environment:
+      - STORE_DATABASE_URL=db_store:3306
+      - STORE_DATABASE_USERNAME=root
+      - STORE_DATABASE_PASSWORD=root
+      - STORE_DATABASE_NAME=online_store
+      - HOST=0.0.0.0
+    depends_on:
+      - ganache
+      - db_store
+
+  customer_app:
+    image: customer_app:v1
+    ports:
+      - "5002:5000"
+    environment:
+      - STORE_DATABASE_URL=db_store:3306
+      - STORE_DATABASE_USERNAME=root
+      - STORE_DATABASE_PASSWORD=root
+      - STORE_DATABASE_NAME=online_store
+      - HOST=0.0.0.0
+    depends_on:
+      - ganache
+      - db_store
+
+  courier_app:
+    image: courier_app:v1
+    ports:
+      - "5003:5000"
+    environment:
+      - STORE_DATABASE_URL=db_store:3306
+      - STORE_DATABASE_USERNAME=root
+      - STORE_DATABASE_PASSWORD=root
+      - STORE_DATABASE_NAME=online_store
+      - HOST=0.0.0.0
+    depends_on:
+      - ganache
+      - db_store
